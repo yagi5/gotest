@@ -18,6 +18,7 @@ import (
 	"syscall"
 
 	"github.com/fatih/color"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -38,23 +39,30 @@ func gotest(args []string) int {
 	wg.Add(1)
 	defer wg.Wait()
 
-	r, w := io.Pipe()
-	defer w.Close()
+	// gotest -v xxx/yyy
+	if terminal.IsTerminal(0) {
+		r, w := io.Pipe()
+		defer w.Close()
 
-	args = append([]string{"test"}, args...)
-	cmd := exec.Command("go", args...)
-	cmd.Stderr = w
-	cmd.Stdout = w
-	cmd.Env = os.Environ()
+		args = append([]string{"test"}, args...)
+		cmd := exec.Command("go", args...)
+		cmd.Stderr = w
+		cmd.Stdout = w
+		cmd.Env = os.Environ()
 
-	go consume(&wg, r)
+		go consume(&wg, r)
 
-	if err := cmd.Run(); err != nil {
-		if ws, ok := cmd.ProcessState.Sys().(syscall.WaitStatus); ok {
-			return ws.ExitStatus()
+		if err := cmd.Run(); err != nil {
+			if ws, ok := cmd.ProcessState.Sys().(syscall.WaitStatus); ok {
+				return ws.ExitStatus()
+			}
+			return 1
 		}
-		return 1
+		return 0
 	}
+	// go test xxx/yyy | gotest
+	fmt.Println("reading from stdin")
+	go consume(&wg, os.Stdin)
 	return 0
 }
 
