@@ -31,11 +31,18 @@ You can use this with pipe like this!
 $ go test -v github.com/rakyll/hey | gotest
 ```
 
+Of course, it will be okay.
+
+```
+$ make test | gotest
+```
+
 ---
 
 ```
 $ GOTEST_PALETTE="magenta,white"
 ```
+
 
 The output will have magenta for failed cases, white for success.
 Available colors: black, hiblack, red, hired, green, higreen, yellow, hiyellow, blue, hiblue, magenta, himagenta, cyan, hicyan, white, hiwhite.
